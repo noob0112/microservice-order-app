@@ -95,9 +95,10 @@ export class OrdersService {
   }
 
   public async getOrderById(id: objectId) {
-    const order = await this.orderRepository.findById(id).catch((error) => {
-      throw new BadRequestException(error.message);
-    });
+    const order = await this.orderRepository.findById(id);
+    // .catch((error) => {
+    //   throw new BadRequestException(error.message);
+    // });
 
     if (!order) {
       throw new HttpException(
@@ -140,25 +141,6 @@ export class OrdersService {
       order.state = stateOrderUpdate;
       return order.save();
     });
-  }
-
-  public async deleteOrderById(id: objectId): Promise<object> {
-    const order = await this.orderRepository
-      .findByIdAndDelete(id)
-      .catch((error) => {
-        if (error.name === 'CastError')
-          throw new HttpException('Order is incorrect', HttpStatus.BAD_REQUEST);
-
-        throw new HttpException(error, 500);
-      });
-
-    if (!order) {
-      throw new HttpException(
-        'Order is incorrect or not exist',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    return { message: `Delete ${id} successfully!` };
   }
 
   private switchStateOrder(order, stateOrderUpdate) {

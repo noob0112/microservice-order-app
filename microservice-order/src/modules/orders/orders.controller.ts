@@ -17,7 +17,6 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiParam,
-  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -26,7 +25,6 @@ import { Request } from 'express';
 import { OrdersService } from './orders.service';
 import {
   objectIdDto,
-  orderDto,
   orderNewDto,
   queryOrderDto,
   stateOrderUpdateDto,
@@ -37,6 +35,7 @@ import { JwtGuard } from 'src/modules/auth/guard/jwt.guard';
 import { RolesGuard } from 'src/modules/auth/guard/roles.guard';
 import { Role } from 'src/modules/users/users.constant';
 import { paramIdOrder } from './docs/orders.swagger';
+import { orderResponse, stateOrderResponse } from './dto/orders.response';
 // import { STATES_ORDER_ENUM } from './constants/orders.constant';
 
 @ApiTags('orders')
@@ -50,7 +49,7 @@ export class OrdersController {
   @Post()
   @ApiCreatedResponse({
     description: 'The order has been successfully created.',
-    type: orderDto,
+    type: orderResponse,
   })
   @ApiBadRequestResponse({ description: 'Unvalidate.' })
   @ApiUnauthorizedResponse({ status: 401, description: 'Unauthorized.' })
@@ -70,7 +69,7 @@ export class OrdersController {
   @Get()
   @ApiOkResponse({
     description: 'return array orders',
-    type: [orderDto],
+    type: [orderResponse],
   })
   @ApiBadRequestResponse({ description: 'Unvalidate.' })
   @ApiUnauthorizedResponse({ status: 401, description: 'Unauthorized.' })
@@ -80,37 +79,46 @@ export class OrdersController {
 
   @UseGuards(JwtGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
+  @Get('state/:_id')
   @ApiParam(paramIdOrder)
-  @Get('state/:id')
+  @ApiOkResponse({
+    description: 'return a state of order',
+    type: stateOrderResponse,
+  })
+  @ApiBadRequestResponse({ description: 'Unvalidate.' })
+  @ApiUnauthorizedResponse({ status: 401, description: 'Unauthorized.' })
   getStateOrder(@Param() param: objectIdDto) {
     return this.ordersService.getStateOrder(param._id);
   }
 
   @UseGuards(JwtGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
+  @Get(':_id')
   @ApiParam(paramIdOrder)
-  @Get(':id')
+  @ApiOkResponse({
+    description: 'return a state of order',
+    type: orderResponse,
+  })
+  @ApiBadRequestResponse({ description: 'Unvalidate.' })
+  @ApiUnauthorizedResponse({ status: 401, description: 'Unauthorized.' })
   getOrderById(@Param() param: objectIdDto) {
     return this.ordersService.getOrderById(param._id);
   }
 
   @UseGuards(JwtGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
+  @Put(':_id')
   @ApiParam(paramIdOrder)
-  @Put(':id')
+  @ApiOkResponse({
+    description: 'return a detail order update',
+    type: orderResponse,
+  })
+  @ApiBadRequestResponse({ description: 'Unvalidate.' })
+  @ApiUnauthorizedResponse({ status: 401, description: 'Unauthorized.' })
   updateStateOrderById(
     @Param() param: objectIdDto,
     @Body() stateOrder: stateOrderUpdateDto,
   ) {
     return this.ordersService.updateStateOrderById(param._id, stateOrder.state);
-  }
-
-  @UseGuards(JwtGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @ApiParam(paramIdOrder)
-  @Delete(':id')
-  @HttpCode(204)
-  deleteOrderById(@Param() param: objectIdDto) {
-    return this.ordersService.deleteOrderById(param._id);
   }
 }
