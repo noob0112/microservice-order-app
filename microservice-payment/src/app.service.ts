@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { STATE } from './app.mock';
+import { STATE } from './app.constant';
 
 @Injectable()
 export class AppService {
