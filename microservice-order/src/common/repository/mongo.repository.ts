@@ -1,5 +1,4 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { objectIdDto } from 'src/modules/users/dto/users.dto';
 import { objectId } from '../type/objectId.type';
 // import { Model, Document } from 'mongoose';
 
