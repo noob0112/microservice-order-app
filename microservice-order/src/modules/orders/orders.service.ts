@@ -9,7 +9,7 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 // import { Cron, Timeout } from '@nestjs/schedule';
 
-import { objectId } from 'src/common/type/objectId.type';
+import { objectId } from '../../common/type/objectId.type';
 import { queryOrderDto } from './dto/orders.dto';
 import { STATES_ORDER_ENUM } from './constants/orders.constant';
 import { OrderRepository } from './orders.repository';
@@ -25,6 +25,10 @@ export class OrdersService {
 
   async payment(order) {
     const findOrder = await this.getOrderById(order._id);
+
+    if (!findOrder) {
+      return;
+    }
 
     if (findOrder.state === STATES_ORDER_ENUM.CREATED) {
       try {
@@ -61,11 +65,11 @@ export class OrdersService {
             );
           }, 10000);
         }
-        return;
       } catch (error) {
-        Logger.log('PaymentService UnauthorizedException');
+        Logger.error('PaymentService Error');
       }
     }
+    return;
   }
 
   public async createOrder(
@@ -91,18 +95,17 @@ export class OrdersService {
   }
 
   public async getOrderById(id: objectId) {
-    const order = await this.orderRepository
-      .findById(id)
-      .then()
-      .catch((error) => {
-        throw new BadRequestException(error.message);
-      });
+    const order = await this.orderRepository.findById(id).catch((error) => {
+      throw new BadRequestException(error.message);
+    });
+
     if (!order) {
       throw new HttpException(
         'Order is incorrect or not exist',
         HttpStatus.NOT_FOUND,
       );
     }
+
     return order;
   }
 
@@ -127,20 +130,19 @@ export class OrdersService {
   }
 
   public async updateStateOrderById(id: objectId, stateOrderUpdate: string) {
-    return await this.orderRepository
-      .findById(id)
-      .then((order) => {
-        if (!order) {
-          return 'Order is incorrect';
-        }
-        this.switchStateOrder(order, stateOrderUpdate);
-      })
-      .catch((error) => {
-        throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
-      });
+    return await this.orderRepository.findById(id).then((order) => {
+      if (!order) {
+        return 'Order is incorrect';
+      }
+      if (!this.switchStateOrder(order, stateOrderUpdate))
+        throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
+
+      order.state = stateOrderUpdate;
+      return order.save();
+    });
   }
 
-  public async deleteOrderById(id: objectId) {
+  public async deleteOrderById(id: objectId): Promise<object> {
     const order = await this.orderRepository
       .findByIdAndDelete(id)
       .catch((error) => {
@@ -149,13 +151,14 @@ export class OrdersService {
 
         throw new HttpException(error, 500);
       });
+
     if (!order) {
       throw new HttpException(
         'Order is incorrect or not exist',
         HttpStatus.BAD_REQUEST,
       );
     }
-    return `Delete ${id} successfully!`;
+    return { message: `Delete ${id} successfully!` };
   }
 
   private switchStateOrder(order, stateOrderUpdate) {
@@ -165,28 +168,27 @@ export class OrdersService {
           stateOrderUpdate !== STATES_ORDER_ENUM.CONFIRMED &&
           stateOrderUpdate !== STATES_ORDER_ENUM.CANCELED
         ) {
-          throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
+          return false;
         }
 
-        order.state = stateOrderUpdate;
-        return order.save();
-        break;
+        return true;
 
       case STATES_ORDER_ENUM.CONFIRMED:
         if (
           stateOrderUpdate !== STATES_ORDER_ENUM.DELIVERED &&
           stateOrderUpdate !== STATES_ORDER_ENUM.CANCELED
         ) {
-          throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
+          return false;
         }
 
-        order.state = stateOrderUpdate;
-        return order.save();
+        return true;
         break;
 
-      case STATES_ORDER_ENUM.DELIVERED || STATES_ORDER_ENUM.CANCELED:
-        throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
-        break;
+      case STATES_ORDER_ENUM.DELIVERED:
+        return false;
+
+      case STATES_ORDER_ENUM.CANCELED:
+        return false;
 
       default:
         break;
