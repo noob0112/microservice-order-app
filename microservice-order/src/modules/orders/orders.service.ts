@@ -67,6 +67,7 @@ export class OrdersService {
         }
       } catch (error) {
         Logger.error('PaymentService Error');
+        return;
       }
     }
     return;
@@ -130,50 +131,18 @@ export class OrdersService {
     return await this.orderRepository.find(query);
   }
 
-  public async updateStateOrderById(id: objectId, stateOrderUpdate: string) {
-    return await this.orderRepository.findById(id).then((order) => {
-      if (!order) {
-        return 'Order is incorrect';
-      }
-      if (!this.switchStateOrder(order, stateOrderUpdate))
-        throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
-
-      order.state = stateOrderUpdate;
-      return order.save();
-    });
-  }
-
-  private switchStateOrder(order, stateOrderUpdate) {
-    switch (order.state) {
-      case STATES_ORDER_ENUM.CREATED:
-        if (
-          stateOrderUpdate !== STATES_ORDER_ENUM.CONFIRMED &&
-          stateOrderUpdate !== STATES_ORDER_ENUM.CANCELED
-        ) {
-          return false;
-        }
-
-        return true;
-
-      case STATES_ORDER_ENUM.CONFIRMED:
-        if (
-          stateOrderUpdate !== STATES_ORDER_ENUM.DELIVERED &&
-          stateOrderUpdate !== STATES_ORDER_ENUM.CANCELED
-        ) {
-          return false;
-        }
-
-        return true;
-        break;
-
-      case STATES_ORDER_ENUM.DELIVERED:
-        return false;
-
-      case STATES_ORDER_ENUM.CANCELED:
-        return false;
-
-      default:
-        break;
+  public async updateStateOrderById(
+    id: objectId,
+    stateOrderUpdate: STATES_ORDER_ENUM,
+  ) {
+    try {
+      return await this.orderRepository.updateStateOrderById(
+        id,
+        stateOrderUpdate,
+      );
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(error.message, error.statusCode);
     }
   }
 }

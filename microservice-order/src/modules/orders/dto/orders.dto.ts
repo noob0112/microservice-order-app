@@ -14,24 +14,6 @@ import {
 import { objectId } from 'src/common/type/objectId.type';
 import { STATES_ORDER_ENUM } from '../constants/orders.constant';
 
-// DTO order
-export class orderDto {
-  @ApiProperty()
-  _id: objectId;
-
-  @ApiProperty()
-  userId: objectId;
-
-  @ApiProperty()
-  orderDetail: [orderDetail];
-
-  @ApiProperty()
-  state: STATES_ORDER_ENUM;
-
-  @ApiProperty()
-  totalPrice: number;
-}
-
 //
 export class objectIdDto {
   @ApiProperty()

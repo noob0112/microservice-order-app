@@ -1,7 +1,11 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-  imports: [MongooseModule.forRoot('mongodb://127.0.0.1:27017/order-app')],
+  imports: [
+    // ConfigModule.forRoot({}),
+    MongooseModule.forRoot(`mongodb://127.0.0.1:27017/order-app`),
+  ],
 })
 export class ConnectDBModule {}

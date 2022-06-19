@@ -11,7 +11,7 @@ export interface IOrder {
 
 export interface INewOrder {
   userId?: objectId;
-  orderDetail: [orderDetail];
+  orderDetail: orderDetail[];
   state: STATES_ORDER_ENUM;
   totalPrice: number;
 }

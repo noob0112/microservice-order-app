@@ -12,6 +12,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(new ValidationPipe());
 
+  // Open API
   const config = new DocumentBuilder()
     .setTitle('Order App')
     .setDescription('The order API description')

@@ -14,7 +14,7 @@ export class OrderRepository extends Repository {
     super(orderModel);
   }
 
-  updateStateOrderbyid(id, stateUpdate) {
+  updateStateOrderById(id, stateUpdate) {
     return new Promise((resole, reject) => {
       this.findById(id).then((order) => {
         if (!order) {
